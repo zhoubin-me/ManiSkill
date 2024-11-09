@@ -83,13 +83,13 @@ class PickCubeEnv(BaseEnv):
         obs = dict(
             is_grasped=info["is_grasped"],
             tcp_pose=self.agent.tcp.pose.raw_pose,
-            # goal_pos=self.goal_site.pose.p,
         )
         if "state" in self.obs_mode:
             obs.update(
+                goal_pos=self.goal_site.pose.p,
                 obj_pose=self.cube.pose.raw_pose,
-                tcp_to_obj_pos=self.cube.pose.p - self.agent.tcp.pose.p,
-                obj_to_goal_pos=self.goal_site.pose.p - self.cube.pose.p,
+                # tcp_to_obj_pos=self.cube.pose.p - self.agent.tcp.pose.p,
+                # obj_to_goal_pos=self.goal_site.pose.p - self.cube.pose.p,
             )
         return obs
 

@@ -170,8 +170,8 @@ class NatureCNN(nn.Module):
 
         self.out_features = 0
         feature_size = 256
-        in_channels=sample_obs["rgb"].shape[-1]
-        image_size=(sample_obs["rgb"].shape[1], sample_obs["rgb"].shape[2])
+        in_channels=sample_obs["rgbd"].shape[-1]
+        image_size=(sample_obs["rgbd"].shape[1], sample_obs["rgbd"].shape[2])
 
 
         # here we use a NatureCNN architecture to process images, but any architecture is permissble here
@@ -197,9 +197,9 @@ class NatureCNN(nn.Module):
 
         # to easily figure out the dimensions after flattening, we pass a test tensor
         with torch.no_grad():
-            n_flatten = cnn(sample_obs["rgb"].float().permute(0,3,1,2).cpu()).shape[1]
+            n_flatten = cnn(sample_obs["rgbd"].float().permute(0,3,1,2).cpu()).shape[1]
             fc = nn.Sequential(nn.Linear(n_flatten, feature_size), nn.ReLU())
-        extractors["rgb"] = nn.Sequential(cnn, fc)
+        extractors["rgbd"] = nn.Sequential(cnn, fc)
         self.out_features += feature_size
 
         if "state" in sample_obs:
@@ -215,7 +215,7 @@ class NatureCNN(nn.Module):
         # self.extractors contain nn.Modules that do all the processing.
         for key, extractor in self.extractors.items():
             obs = observations[key]
-            if key == "rgb":
+            if key == "rgbd":
                 obs = obs.float().permute(0,3,1,2)
                 obs = obs / 255
             encoded_tensor_list.append(extractor(obs))
@@ -293,13 +293,13 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # env setup
-    env_kwargs = dict(obs_mode="rgb", control_mode="pd_joint_delta_pos", render_mode=args.render_mode, sim_backend="gpu")
+    env_kwargs = dict(obs_mode="rgb+depth", control_mode="pd_joint_delta_pos", render_mode=args.render_mode, sim_backend="gpu")
     eval_envs = gym.make(args.env_id, num_envs=args.num_eval_envs, reconfiguration_freq=args.eval_reconfiguration_freq, **env_kwargs)
     envs = gym.make(args.env_id, num_envs=args.num_envs if not args.evaluate else 1, reconfiguration_freq=args.reconfiguration_freq, **env_kwargs)
 
     # rgbd obs mode returns a dict of data, we flatten it so there is just a rgbd key and state key
-    envs = FlattenRGBDObservationWrapper(envs, rgb=True, depth=False, state=args.include_state)
-    eval_envs = FlattenRGBDObservationWrapper(eval_envs, rgb=True, depth=False, state=args.include_state)
+    envs = FlattenRGBDObservationWrapper(envs, rgb=True, depth=True, state=args.include_state)
+    eval_envs = FlattenRGBDObservationWrapper(eval_envs, rgb=True, depth=True, state=args.include_state)
 
     if isinstance(envs.action_space, gym.spaces.Dict):
         envs = FlattenActionSpaceWrapper(envs)

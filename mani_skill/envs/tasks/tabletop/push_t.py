@@ -158,8 +158,8 @@ class PushTEnv(BaseEnv):
             CameraConfig(
                 "base_camera",
                 pose=pose,
-                width=128,
-                height=128,
+                width=84,
+                height=84,
                 fov=np.pi / 2,
                 near=0.01,
                 far=100,

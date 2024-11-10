@@ -217,7 +217,8 @@ class NatureCNN(nn.Module):
             obs = observations[key]
             if key == "rgbd":
                 obs = obs.float().permute(0,3,1,2)
-                obs = obs / 255
+                obs[:, :3] /= 255
+                obs[:, -1] /= 10000
             encoded_tensor_list.append(extractor(obs))
         return torch.cat(encoded_tensor_list, dim=1)
 
